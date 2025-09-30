@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Peridot's Kitchen — Futuristic Menu (With Chatbot)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+    :root{
+      --bg1:#0d0d0d;
+      --bg2:#161616;
+      --accent-teal:#ff6347;
+      --accent-pink:#ee0979;
+      --accent-orange:#ff6a00;
+      --card-bg: rgba(255,255,255,0.04);
+    }
+
+    html,body{height:100%;margin:0;font-family:'Poppins',sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#eaeaea;-webkit-font-smoothing:antialiased;}
+
+    /* Header */
+    header{
+      position:sticky;top:0;z-index:120;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:14px 6%;gap:12px;
+      background: rgba(10,10,10,0.6);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    header h1{margin:0;font-size:1.35rem;color:var(--accent-teal);letter-spacing:0.6px}
+    header nav a{color:#fff;text-decoration:none;margin-left:20px;font-weight:600;opacity:0.9}
+    header nav a:hover{color:var(--accent-pink)}
+
+    /* Controls (tabs + optional search) */
+    .controls{
+      padding:18px 6% 6px;
+      display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    }
+    .tabs{display:flex;gap:12px;flex-wrap:wrap}
+    .tab-btn{
+      background: rgba(255,255,255,0.03);
+      border:1px solid rgba(255,255,255,0.04);
+      color:#ddd;padding:8px 14px;border-radius:999px;font-weight:700;cursor:pointer;
+      transition: all .22s ease;backdrop-filter: blur(6px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    }
+    .tab-btn.active{
+      background: linear-gradient(135deg, rgba(238,9,121,0.12), rgba(0,245,212,0.06));
+      color:#fff;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.55), 0 0 18px rgba(238,9,121,0.16);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* Grid */
+    .menu{
+      padding: 18px 6% 80px;
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap:28px;
+    }
+
+    .product{
+      background: var(--card-bg);
+      border-radius:16px;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      transition: transform .28s cubic-bezier(.2,.9,.3,1), box-shadow .28s;
+      border: 1px solid rgba(255,255,255,0.03);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    .product:hover{
+      transform: translateY(-10px) scale(1.01);
+      box-shadow: 0 18px 48px rgba(0,0,0,0.65), 0 0 18px rgba(238,9,121,0.06);
+    }
+    .product img{
+      width:100%;height:190px;object-fit:cover;display:block;border-bottom:1px solid rgba(255,255,255,0.03)
+    }
+    .product-content{
+      padding:16px;display:flex;flex-direction:column;gap:10px;flex:1;
+    }
+    .product h3{margin:0;font-size:1.18rem;color:#fff}
+    .product p{margin:0;color:#bfc5c8;font-size:0.95rem}
+    .price{font-weight:800;color:var(--accent-teal);font-size:1.05rem}
+    .meta-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+
+    /* Qty control */
+    .qty-control{display:flex;align-items:center;gap:8px}
+    .qty-btn{
+      width:36px;height:36px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--accent-pink),var(--accent-orange));color:#fff;font-weight:800;font-size:18px;
+      display:inline-flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 20px rgba(238,9,121,0.25);
+      transition: transform .12s;
+    }
+    .qty-btn:active{transform:scale(.96)}
+    .qty-num{min-width:30px;text-align:center;font-weight:700;color:#fff}
+
+    /* Floating cart */
+    .cart{
+      position:fixed;right:22px;bottom:22px;z-index:200;
+      background:linear-gradient(135deg,var(--accent-teal), #09f);
+      color:#07121a;padding:14px 20px;border-radius:40px;font-weight:700;
+      box-shadow:0 14px 36px rgba(0,245,212,0.18);
+      display:none;cursor:pointer;transition:transform .12s;
+    }
+    .cart:hover{transform:scale(1.03)}
+
+    /* Modal */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.6));z-index:400}
+    .modal-card{
+      width:92%;max-width:480px;padding:20px;border-radius:16px;background:linear-gradient(180deg, rgba(20,20,20,0.95), rgba(12,12,12,0.9));
+      border:1px solid rgba(255,255,255,0.05);backdrop-filter:blur(10px);box-shadow:0 20px 60px rgba(0,0,0,0.7);
+    }
+    .modal-card h2{margin:0 0 10px;color:var(--accent-teal)}
+    .summary{color:#ddd;max-height:220px;overflow:auto;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:12px}
+    .loc-input{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;margin-bottom:12px;font-size:15px}
+    .place-btn{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent-pink),var(--accent-orange));color:#fff;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 10px 26px rgba(238,9,121,0.18)}
+    .place-btn:active{transform:translateY(1px)}
+
+    /* small screen adjustments */
+    @media (max-width:520px){
+      header{padding:12px 4%}
+      .controls{padding:12px 4% 8px}
+      .menu{padding:16px 4% 120px;gap:16px}
+      .product img{height:150px}
+      .qty-btn{width:32px;height:32px}
+    }
+
+    /* ===========================
+       PeriChat widget styles (NAMESPACED)
+       =========================== */
+    .peri-chat-toggle {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+      display: none; /* shown only after checkout action */
+      z-index: 900;
+      cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.06);
+      background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    }
+    .peri-chat-toggle img { width:100%; height:100%; object-fit:cover; display:block; }
+
+    .peri-chat-window {
+      position: fixed;
+      bottom: 100px;
+      right: 22px;
+      width: 340px;
+      max-height: 520px;
+      background: linear-gradient(180deg, rgba(18,18,25,0.95), rgba(12,12,18,0.9));
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      overflow: hidden;
+      display: none;
+      z-index: 910;
+      border: 1px solid rgba(255,255,255,0.04);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+    .peri-chat-head {
+      display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid rgba(255,255,255,0.04);
+      background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    }
+    .peri-chat-head img{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.06)}
+    .peri-chat-head .peri-name{font-weight:700;color:var(--accent-teal)}
+    .peri-chat-body{padding:12px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+    .peri-bubble{max-width:80%;padding:10px 12px;border-radius:14px;font-size:0.95rem;line-height:1.4}
+    .peri-bot{background: linear-gradient(135deg,#4e54c8,#8f94fb);align-self:flex-start;color:#fff}
+    .peri-user{background: rgba(255,255,255,0.95);align-self:flex-end;color:#111}
+
+    /* typing dots */
+    .peri-typing {
+      display:inline-block; padding:6px 10px;border-radius:12px;background:rgba(255,255,255,0.08);
+    }
+    .peri-dots span{
+      display:inline-block;width:6px;height:6px;margin:0 2px;background:#fff;border-radius:50%;opacity:0.3;
+      animation: peri-bounce 1s infinite ease-in-out;
+    }
+    .peri-dots span:nth-child(2){animation-delay:.15s}
+    .peri-dots span:nth-child(3){animation-delay:.3s}
+    @keyframes peri-bounce{
+      0%{transform:translateY(0);opacity:0.25}
+      50%{transform:translateY(-6px);opacity:1}
+      100%{transform:translateY(0);opacity:0.25}
+    }
+
+    .peri-chat-input{display:flex;border-top:1px solid rgba(255,255,255,0.04);padding:8px;gap:8px}
+    .peri-chat-input input{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#fff;outline:none}
+    .peri-chat-input button{background:linear-gradient(135deg,var(--accent-pink),var(--accent-orange));color:#fff;border:none;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+
+    /* ensure chat content won't inherit other styles */
+    .peri-chat-window *, .peri-chat-toggle * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Peridot's Kitchen</h1>
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="">About</a>
+      
+    </nav>
+  </header>
+
+  <!-- Tabs -->
+  <div class="controls">
+    <div class="tabs" role="tablist" aria-label="Product categories">
+      <button class="tab-btn active" data-cat="all" onclick="filterCategory('all', this)">All</button>
+      <button class="tab-btn" data-cat="rice" onclick="filterCategory('rice', this)">Rice Dishes</button>
+      <button class="tab-btn" data-cat="Pasta" onclick="filterCategory('Pasta', this)">Pasta</button>
+      <button class="tab-btn" data-cat="Soup" onclick="filterCategory('Soup', this)">Soup</button>
+      <button class="tab-btn" data-cat="Smoothies" onclick="filterCategory('Smoothies', this)">Smoothies</button>
+       <button class="tab-btn" data-cat="Puddings" onclick="filterCategory('Puddings', this)">Puddings</button>
+        <button class="tab-btn" data-cat="Deserts" onclick="filterCategory('Deserts', this)">Deserts</button>
+         <button class="tab-btn" data-cat="OTher Meals" onclick="filterCategory('OTher Meals', this)">OTher Meals</button>
+          <button class="tab-btn" data-cat="Snacks" onclick="filterCategory('Snacks', this)">Snacks</button>
+    </div>
+  </div>
+
+  <!-- Product Grid -->
+  <section class="menu" id="menuGrid">
+
+   
+  </div>
+</article>
+    <!-- Rice: Asun Rice -->
+    <article class="product" data-slug="asun-rice" data-name=" S Asun Rice" data-price="15" data-category="rice">
+      <img src="asun rice.jpeg" alt="Asun Rice">
+      <div class="product-content">
+        <div>
+          <h3>Asun Rice</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('asun-rice', -1)">−</button>
+            <div class="qty-num" id="qty-asun-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('asun-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="2-Lrice" data-name="2L Asun Rice" data-price="25" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="4-Lrice" data-name="4L Asun Rice" data-price="45" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="1c-Lrice" data-name="1c Asun Rice" data-price="15" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>1C</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('1c-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-1c-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('1c-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+        
+</article>
+
+
+
+
+
+     
+
+
+
+
+
+
+    <!-- Native rice -->
+    <article class="product" data-slug="Native-rice" data-name=" S Native Rice" data-price="15" data-category="rice">
+      <img src="native rice.jpeg" alt="Asun Rice">
+      <div class="product-content">
+        <div>
+          <h3>Native Rice</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('Native-rice', -1)">−</button>
+            <div class="qty-num" id="qty-Native-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('Native-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="222-Lrice" data-name="2L Native Rice" data-price="25" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('222-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-222-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('222-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="233-Lrice" data-name="4L Native Rice" data-price="45" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('233-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-233-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('233-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="244-Lrice" data-name="1C Native Rice" data-price="15" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>1C</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('244-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-244-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('244-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+        
+</article>
+
+
+    <!-- jambalaya rice -->
+
+<article class="product" data-slug="jambalaya-rice" data-name="S Jambalaya Rice" data-price="15" data-category="rice">
+      <img src="jambalaya.jpg" alt="Asun Rice">
+      <div class="product-content">
+        <div>
+          <h3>Jambalaya Rice</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('jambalaya-rice', -1)">−</button>
+            <div class="qty-num" id="qty-jambalaya-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('jambalaya-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="jambalaya2-rice" data-name="2L Jambalaya Rice" data-price="25" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('jambalaya2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-jambalaya2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('jambalaya2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="jambalaya3-rice" data-name="4L Jambalaya Rice" data-price="45" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('jambalaya3-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-jambalaya3-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('jambalaya3-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="jambalaya4-rice" data-name="1C Jambalaya Rice" data-price="15" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>1C</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('jambalaya4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-jambalaya4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('jambalaya4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+        
+</article>
+
+
+    <!-- naija jollof rice -->
+   <article class="product" data-slug="jollof-rice" data-name="S Jollof Rice" data-price="15" data-category="rice">
+      <img src="NIGERIAN_JOLLOF_RICE_.jpg" alt="jollof Rice">
+      <div class="product-content">
+        <div>
+          <h3>Jollof Rice</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('jollof-rice', -1)">−</button>
+            <div class="qty-num" id="qty-jollof-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('jollof-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="jollof2-Lrice" data-name="2L Jollof Rice" data-price="25" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('jollof-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-jollof2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('jollof2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="Jollof3" data-name="4L Jollof Rice" data-price="45" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('jollof3-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-jollof3-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('jollof3-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="jollof4-Lrice" data-name="1C Jollof Rice" data-price="15" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>1C</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('jollof4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-jollof4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('jollof4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+        
+</article>
+
+
+    <!-- korean fried rice -->
+    
+<article class="product" data-slug="korean-rice" data-name="S Korean Fried Rice" data-price="15" data-category="rice">
+      <img src="Gochujang-Korean-Fried-Rice-Recipe-10-2-1-500x500.jpg" alt="korean Rice">
+      <div class="product-content">
+        <div>
+          <h3>korean Fried Rice</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('korean-rice', -1)">−</button>
+            <div class="qty-num" id="qty-korean-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('korean-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="korean2-Lrice" data-name="2L korean Fried Rice" data-price="25" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('korean2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-korean2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('korean2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="korean3-Lrice" data-name="4L korean Fried Rice" data-price="45" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('korean3-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-korean3-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('korean3-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="korean4-Lrice" data-name="1C korean Fried Rice" data-price="15" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>1C</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('korean4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-korean4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('korean4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+        
+</article>
+
+
+    <!--Coconut flavored herb Rice -->
+   <article class="product" data-slug="coconutherb-rice" data-name=" S coconut flavored herbed Rice" data-price="15" data-category="rice">
+      <img src="coconut-herbed-rice-38028-1.jpg" alt="coconut herb rice">
+      <div class="product-content">
+        <div>
+          <h3>Coconut Flavored Herb Rice</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('coconutherb-rice', -1)">−</button>
+            <div class="qty-num" id="qty-coconutherb-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('coconutherb-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="coconutherb2-Lrice" data-name="2L Coconut Flavored Herb Rice" data-price="25" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('coconutherb2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-coconutherb2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('coconutherb2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="coconutherb3-Lrice" data-name="4L Coconut Flavored Herb Rice" data-price="45" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('coconutherb3-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-coconutherb3-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('coconutherb3-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="coconutherb4-Lrice" data-name="1C Coconut Flavored Herb Rice" data-price="3500" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>1C</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('coconutherb4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-coconutherb4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('coconutherb4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+        
+</article>
+<!---Suya Rice-->
+<article class="product" data-slug="suya-rice" data-name=" S suya Rice" data-price="15" data-category="rice">
+      <img src="suya rice.jpg" alt="Asun Rice">
+      <div class="product-content">
+        <div>
+          <h3>Suya Rice</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('suya-rice', -1)">−</button>
+            <div class="qty-num" id="qty-suya-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('suya-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="suya2-Lrice" data-name="2L suya Rice" data-price="25" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('suya2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-suya2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('suya2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="suya3-Lrice" data-name="4L suya Rice" data-price="45" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('suya3-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-suya3-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('suya3-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="suya4-Lrice" data-name="1C suya Rice" data-price="3500" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>1C</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('suya4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-suya4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('suya4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+        
+</article>
+<!--COCONUT RICE-->
+
+<article class="product" data-slug="coconut-rice" data-name="S Coconut Rice" data-price="15" data-category="rice">
+      <img src="coconut rice.jpeg" alt="Asun Rice">
+      <div class="product-content">
+        <div>
+          <h3>Coconut Rice</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('coconut-rice', -1)">−</button>
+            <div class="qty-num" id="qty-coconut-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('coconut-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="coconut2-Lrice" data-name="2L Coconut Rice" data-price="25" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('coconut2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-coconut2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('coconut2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="coconut3-Lrice" data-name="4L Rice" data-price="45" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('coconut3-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-coconut3-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('coconut3-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="coconut4-Lrice" data-name="1C Coconut Rice" data-price="3500" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>1C</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('coconut4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-coconut4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('coconut4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+        
+</article>
+<!--pineapple fried rice-->
+<article class="product" data-slug="pine-rice" data-name="S Pineapple Fried Rice" data-price="15" data-category="rice">
+      <img src="pineapplefriedrice.jpg" alt="Asun Rice">
+      <div class="product-content">
+        <div>
+          <h3>Pineapple Fried Rice</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('pine-rice', -1)">−</button>
+            <div class="qty-num" id="qty-pine-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('pine-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="pine2-Lrice" data-name="2L Pineapple Fried Rice" data-price="25" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('pine2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-pine2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('pine2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="pine3-Lrice" data-name="4L Pineapple Fried Rice" data-price="45" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('pine3-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-pine3-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('pine3-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="pine4-Lrice" data-name="1C Rice" data-price="3500" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>1C</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('pine4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-pine4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('pine4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+        <!--rice and beans-->
+</article>
+<article class="product" data-slug="rb-rice" data-name=" S Rice&Beans" data-price="15" data-category="rice">
+      <img src="rice and beans.jpeg" alt="Asun Rice">
+      <div class="product-content">
+        <div>
+          <h3> Rice&Beans</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('rb-rice', -1)">−</button>
+            <div class="qty-num" id="qty-rb-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('rb-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="rb2-Lrice" data-name="2L Rice&Beans" data-price="25" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('rb2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-rb2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('rb2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="rb3-Lrice" data-name="4L Rice&Beans" data-price="45" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('rb3-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-rb3-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('rb3-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="rb4-Lrice" data-name="1C Rice&Beans" data-price="3500" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>1C</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('rb4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-rb4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('rb4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+        
+</article>
+<!--rice &chicken sauce-->
+<article class="product" data-slug="rc-rice" data-name="S Rice&Chicken Sauce" data-price="15" data-category="rice">
+      <img src="Chicken-in-tomato-sauce-with-rice_3.jpg" alt="Asun Rice">
+      <div class="product-content">
+        <div>
+          <h3>Rice&Chicken Sauce</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('rc-rice', -1)">−</button>
+            <div class="qty-num" id="qty-rc-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('rc-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="rc2-Lrice" data-name="2L Rice&Chicken Sauce" data-price="25" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('rc2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-rc2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('rc2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="rc3-Lrice" data-name="4L Rice&Chicen Sauce" data-price="45" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('rc3-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-rc3-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('rc3-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="rc4-Lrice" data-name="1C Rice&chicken Sauce" data-price="15" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>1C</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('rc4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-rc4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('rc4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+        
+</article>
+<!--chinese eggs&shrimps-->
+<article class="product" data-slug="ch-rice" data-name="Chinese Egs & Shrimps " data-price="15" data-category="rice">
+      <img src="Shrimp-scrambled-eggs.jpg" alt="">
+      <div class="product-content">
+        <div>
+          <h3>Chinese Eggs & Shrimps</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('ch-rice', -1)">−</button>
+            <div class="qty-num" id="qty-ch-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('ch-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="ch2-Lrice" data-name="2L Chinese Eggs & Shrimps " data-price="25" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('ch2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-ch2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('ch2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="ch3-Lrice" data-name="4L Chinese Eggs & Shrimps " data-price="45" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('ch3-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-ch3-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('ch3-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="ch4-Lrice" data-name="1C Chinese Eggs & Shrimps" data-price="15" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>1C</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('ch4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-ch4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('ch4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+        
+</article>
+
+<article class="product" data-slug="d-rice" data-name="S Dirty  Rice" data-price="15" data-category="rice">
+      <img src="IMG_4619.jpg" alt="Asun Rice">
+      <div class="product-content">
+        <div>
+          <h3>Dirty  Rice</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('d-rice', -1)">−</button>
+            <div class="qty-num" id="qty-d-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('d-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="d2-Lrice" data-name="2L Dirty Rice" data-price="25" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('d2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-d2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('d2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="d3-Lrice" data-name="4L Dirty Rice" data-price="45" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('d3-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-d3-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('d3-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="d4-Lrice" data-name="1C Dirty Rice" data-price="15" data-category="rice">
+      
+      <div class="product-content">
+        <div>
+          <h3>1C</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('d4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-d4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('d4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+        
+</article>
+<!--Pasta category-->
+<!--Mac&cheese-->
+
+<article class="product" data-slug="mac-cheese" data-name=" S Mac&Cheese" data-price="7" data-category="Pasta">
+      <img src="mac-and-cheese-recipe.jpg" alt="mac">
+      <div class="product-content">
+        <div>
+          <h3>Mac&Cheese</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£7</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('mac-cheese', -1)">−</button>
+            <div class="qty-num" id="qty-mac-cheese">0</div>
+            <button class="qty-btn" onclick="changeQty('mac-cheese', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="mac2-Lrice" data-name="2L mac&cheese" data-price="15" data-category="Pasta">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('mac2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-mac2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('mac2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="mac4-Lrice" data-name="4L Mac&cheese" data-price="45" data-category="Pasta">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('mac4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-mac4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('mac4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        </div>
+        
+      </div>
+      </article>    
+    </article>
+    
+    <!--chicken alfredo &pasta-->
+            
+<article class="product" data-slug="chicken-alfredo" data-name=" S Chicken Alfredo & Pasta" data-price="8" data-category="Pasta">
+      <img src="alfredo sauce.jpeg" alt="Alfredo">
+      <div class="product-content">
+        <div>
+          <h3>Chicken Alfredo & Pasta</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£8</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('chicken-alfredo', -1)">−</button>
+            <div class="qty-num" id="qty-chicken-alfredo">0</div>
+            <button class="qty-btn" onclick="changeQty('chicken-alfredo', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="A2-Lrice" data-name="2L Chicken Alfredo & Pasta" data-price="15" data-category="Pasta">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('A2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-A2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('A2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="A4-Lrice" data-name="4L Chicken Alfredo & Pasta" data-price="45" data-category="Pasta">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('A4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-A4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('A4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        </div>
+      </div>    
+    </article>
+            
+    <!--jollof spaghetti-->
+
+        
+<article class="product" data-slug="js-rice" data-name=" S Jollof Spaghetti" data-price="10" data-category="Pasta">
+      <img src="jollof spag.jpeg" alt="Asun Rice">
+      <div class="product-content">
+        <div>
+          <h3>Jollof Spaghetti</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£10</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('js-rice', -1)">−</button>
+            <div class="qty-num" id="qty-js-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('js-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="js2-Lrice" data-name="2L JOllof Spaghetti" data-price="20" data-category="Pasta">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£2</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('js2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-js2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('js2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="js4-Lrice" data-name="4L Jollof Spaghetti" data-price="45" data-category="Pasta">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('js4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-js4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('js4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+ 
+        
+</article>
+<!--Lasagna-->
+
+<article class="product" data-slug="ls-rice" data-name=" S Lasagna" data-price="10" data-category="Pasta">
+      <img src="lasagna.jpeg" alt="lasagna">
+      <div class="product-content">
+        <div>
+          <h3>Lasgna</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£10</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('ls-rice', -1)">−</button>
+            <div class="qty-num" id="qty-ls-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('ls-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="ls2-Lrice" data-name="2L Lasagna" data-price="20" data-category="Pasta">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£20</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('ls2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-ls2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('ls2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="ls4-Lrice" data-name="4L Lasgna" data-price="45" data-category="Pasta">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('ls4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-ls4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('ls4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        </div>
+      </div>   
+      </article> 
+    </article>
+
+        
+</article>
+<!--lasagna soup-->
+        <article class="product" data-slug="lss-rice" data-name=" S Lasagna Soup" data-price="5" data-category="Pasta">
+      <img src="Lasagna-soup-with-broken-lasagna-noodles-fresh-basil-and-Parmesan.jpg" alt="lasagna">
+      <div class="product-content">
+        <div>
+          <h3>Lasagna Soup</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£5</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('lss-rice', -1)">−</button>
+            <div class="qty-num" id="qty-lss-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('lss-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="lss2-Lrice" data-name="2L Lasagna soup" data-price="10" data-category="Pasta">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('lss2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-lss2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('lss2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+          
+<article class="product" data-slug="lss4-Lrice" data-name="4L Lasagna soup" data-price="25" data-category="Pasta">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£25</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('lss4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-lss4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('lss4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+
+        
+      </div>    
+    </article>
+        
+</article>
+<!--bolognese spaghetti-->
+<article class="product" data-slug="bo-rice" data-name=" S Bolognese Spaghetti" data-price="7" data-category="Pasta">
+      <img src="Pasta-Bolognese-TIMG.jpg" alt="Bolognese">
+      <div class="product-content">
+        <div>
+          <h3>Bolognese Spaghetti</h3>
+          <h3>S</h3>
+        </div>
+        <div class="meta-row">
+          <div class="price">£7</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('bo-rice', -1)">−</button>
+            <div class="qty-num" id="qty-bo-rice">0</div>
+            <button class="qty-btn" onclick="changeQty('bo-rice', 1)">+</button>
+          </div>
+        </div>
+        
+<article class="product" data-slug="bo2-Lrice" data-name="2L Bolognese Spaghetti" data-price="15" data-category="Pasta">
+      
+      <div class="product-content">
+        <div>
+          <h3>2L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£15</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('bo2-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-bo2-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('bo2-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+            
+<article class="product" data-slug="bo4-Lrice" data-name="4L Bolognese Spaghetti" data-price="45" data-category="Pasta">
+      
+      <div class="product-content">
+        <div>
+          <h3>4L</h3>
+            </div>
+        <div class="meta-row">
+          <div class="price">£45</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('bo4-Lrice', -1)">−</button>
+            <div class="qty-num" id="qty-bo4-Lrice">0</div>
+            <button class="qty-btn" onclick="changeQty('bo4-Lrice', 1)">+</button>
+          </div>
+        </div>
+        
+      </div>    
+    </article>
+
+        
+</article>
+
+</article>
+
+
+  </section>
+
+  <!-- Floating cart -->
+  <div class="cart" id="cartPill" onclick="openCart()">🛒 0 items — £0</div>
+
+  <!-- Checkout modal -->
+  <div class="modal" id="cartModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+      <h2 id="checkoutTitle">Confirm Your Order</h2>
+      <div class="summary" id="orderSummary">Your cart is empty.</div>
+      <input class="loc-input" id="location" placeholder="Enter your name & delivery location (e.g.john doe,peckham)" />
+       <!-- NOTE: this now opens the PeriChat widget and runs the conversation -->
+      <button class="place-btn" onclick="openPeriChat()">Place Order</button>
+    </div>
+  </div>
+
+  <!-- PeriChat floating toggle (placeholder avatar) -->
+  <div class="peri-chat-toggle" id="periToggle" title="Peridot (Admin)">
+    <img src="https://i.pravatar.cc/100?img=12" alt="Admin photo"> <!-- replace later -->
+  </div>
+
+  <!-- PeriChat widget -->
+  <div class="peri-chat-window" id="periWindow" aria-hidden="true" role="dialog" aria-label="Peridot admin chat">
+    <div class="peri-chat-head">
+      <img src="https://i.pravatar.cc/100?img=12" alt="Admin"> <!-- replace later -->
+      <div>
+        <div class="peri-name">Peridot (Admin)</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px">Online • Automated</div>
+      </div>
+    </div>
+    <div class="peri-chat-body" id="periBody">
+      <!-- chat messages append here -->
+    </div>
+
+    <div class="peri-chat-input" id="periInput" style="display:none;">
+      <input id="periUserInput" placeholder="Type your location or message..." autocomplete="off">
+      <button onclick="periSendUser()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    /* Preserve your original cart logic (unchanged) */
+    const cart = {};
+
+    // --- Category filter ---
+    function filterCategory(cat, btn){
+      // buttons
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      // products
+      document.querySelectorAll('.product').forEach(p => {
+        const matches = (cat === 'all') || (p.dataset.category === cat);
+        p.style.display = matches ? '' : 'none';
+      });
+      document.getElementById('menuGrid').scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    // --- Change quantity (slug, delta) ---
+    function changeQty(slug, delta){
+      const prod = document.querySelector(`.product[data-slug="${slug}"]`);
+      if(!prod) return;
+      const name = prod.dataset.name;
+      const price = Number(prod.dataset.price || 0);
+
+      if(!cart[slug]) cart[slug] = { name, price, qty: 0 };
+      cart[slug].qty += delta;
+      if(cart[slug].qty < 0) cart[slug].qty = 0;
+
+      // update UI count
+      document.getElementById(`qty-${slug}`).textContent = cart[slug].qty;
+
+      // remove zero-qty items to keep cart small (but UI still shows 0)
+      if(cart[slug].qty === 0){
+        delete cart[slug];
+      }
+
+      updateCartPill();
+    }
+
+    // --- Update floating cart pill ---
+    function updateCartPill(){
+      let totalItems = 0, totalPrice = 0;
+      for(const [slug, it] of Object.entries(cart)){
+        totalItems += it.qty;
+        totalPrice += it.qty * it.price;
+      }
+      const pill = document.getElementById('cartPill');
+      if(totalItems > 0){
+        pill.style.display = 'inline-block';
+        pill.textContent = `🛒 ${totalItems} item${totalItems>1?'s':''} — £${totalPrice.toLocaleString()}`;
+      } else {
+        pill.style.display = 'none';
+      }
+    }
+
+    // --- Build and open cart modal with summary ---
+    function openCart(){
+      const summaryEl = document.getElementById('orderSummary');
+      summaryEl.innerHTML = '';
+      let total = 0;
+      const entries = Object.entries(cart);
+      if(entries.length === 0){
+        summaryEl.innerHTML = '<em>Your cart is empty. Add items to order.</em>';
+      } else {
+        const ul = document.createElement('div');
+        entries.forEach(([slug, it]) => {
+          const lineTotal = it.qty * it.price;
+          total += lineTotal;
+          const row = document.createElement('div');
+          row.style.display='flex'; row.style.justifyContent='space-between'; row.style.padding='6px 0';
+          row.innerHTML = `<div style="color:#fff;font-weight:700">${it.name} x${it.qty}</div><div style="color:#cceae0">£${lineTotal.toLocaleString()}</div>`;
+          ul.appendChild(row);
+        });
+        const hr = document.createElement('div'); hr.style.borderTop='1px solid rgba(255,255,255,0.06)'; hr.style.margin='10px 0';
+        summaryEl.appendChild(ul);
+        summaryEl.appendChild(hr);
+        const totalRow = document.createElement('div');
+        totalRow.style.display='flex'; totalRow.style.justifyContent='space-between'; totalRow.style.fontWeight='800'; totalRow.innerHTML = `<div>Total</div><div>£${total.toLocaleString()}</div>`;
+        summaryEl.appendChild(totalRow);
+      }
+      document.getElementById('cartModal').style.display = 'flex';
+      document.getElementById('cartModal').setAttribute('aria-hidden','false');
+    }
+
+    // close modal when clicking outside content
+    document.getElementById('cartModal').addEventListener('click', function(e){
+      if(e.target === this){
+        this.style.display = 'none';
+        this.setAttribute('aria-hidden','true');
+      }
+    });
+
+    // =========================
+    // PeriChat functionality
+    // =========================
+
+    const periToggle = document.getElementById('periToggle');
+    const periWindow = document.getElementById('periWindow');
+    const periBody = document.getElementById('periBody');
+    const periInput = document.getElementById('periInput');
+    const periUserInput = document.getElementById('periUserInput');
+    const WHATSAPP_PHONE = '+447380878919'; // <-- replace with your number
+
+    // helper: append bot bubble
+    function periAppendBot(text, withTyping=false){
+      if(withTyping){
+        const t = document.createElement('div');
+        t.className = 'peri-bubble peri-bot peri-typing';
+        t.innerHTML = '<span class="peri-dots"><span></span><span></span><span></span></span>';
+        periBody.appendChild(t);
+        periBody.scrollTop = periBody.scrollHeight;
+        return t; // return typing element
+      } else {
+        const d = document.createElement('div');
+        d.className = 'peri-bubble peri-bot';
+        d.innerText = text;
+        periBody.appendChild(d);
+        periBody.scrollTop = periBody.scrollHeight;
+      }
+    }
+    // helper: append user bubble
+    function periAppendUser(text){
+      const d = document.createElement('div');
+      d.className = 'peri-bubble peri-user';
+      d.innerText = text;
+      periBody.appendChild(d);
+      periBody.scrollTop = periBody.scrollHeight;
+    }
+
+    // show peri toggle + open window
+    function showPeriToggleAndOpen(){
+      periToggle.style.display = 'block';
+      periWindow.style.display = 'flex';
+      periWindow.setAttribute('aria-hidden','false');
+    }
+
+    // open peri chat after Place Order clicked
+    function openPeriChat(){
+      // validate cart & location first (same as previous behavior)
+      const entries = Object.entries(cart);
+      if(entries.length === 0){
+        alert('Your cart is empty. Add items before ordering.');
+        return;
+      }
+      const location = document.getElementById('location').value.trim();
+      if(!location){
+        alert('Please enter  your name & delivery location so we know where to deliver.');
+        return;
+      }
+
+      // hide modal so only peri chat is shown
+      document.getElementById('cartModal').style.display = 'none';
+      document.getElementById('cartModal').setAttribute('aria-hidden','true');
+
+      // show peri toggle and window
+      showPeriToggleAndOpen();
+
+      // clear any previous chat messages
+      periBody.innerHTML = '';
+
+      // begin conversation flow
+      periAppendBot("Hi 👋 I'm Peridot (your admin). I'll handle your order now.");
+      // show typing indicator before showing summary
+      const typingElement = periAppendBot('', true);
+
+      setTimeout(() => {
+        // remove typing element
+        typingElement.remove();
+
+        // build summary message
+        let total = 0;
+        let summaryText = "Here's your order summary:\n";
+        Object.entries(cart).forEach(([slug, it])=>{
+          const lineTotal = it.qty * it.price;
+          total += lineTotal;
+          summaryText += `• ${it.name} x${it.qty} — ₦${lineTotal.toLocaleString()}\n`;
+        });
+        summaryText += `Total: ₦${total.toLocaleString()}`;
+
+        // append as bot message (formatted)
+        periAppendBot(summaryText);
+
+        // ask / echo location and show input so the user can edit or confirm
+        setTimeout(()=> {
+          periAppendBot("Please confirm or edit your name & delivery location. Type it below and press Send.");
+          periInput.style.display = 'flex';
+          // prefill input with the value from modal
+          periUserInput.value = document.getElementById('location').value.trim();
+          periUserInput.focus();
+        }, 700);
+      }, 900);
+    }
+
+    // when user presses send in PeriChat
+    function periSendUser(){
+      const text = periUserInput.value.trim();
+      if(!text) return;
+      // show user bubble
+      periAppendUser(text);
+      // hide input (we'll show typing)
+      periInput.style.display = 'none';
+
+      // show typing then confirmation
+      const typingEl = periAppendBot('', true);
+      setTimeout(()=> {
+        typingEl.remove();
+        // bot confirms
+        periAppendBot("✅ Thank you! Your order has been received — we'll start preparing it now.");
+        // send to WhatsApp in background (open new tab)
+        sendOrderToWhatsApp(text);
+
+        // final friendly message
+        setTimeout(()=> {
+          periAppendBot("If you need to add anything else, reopen this chat. Thanks for ordering from Peridot's Kitchen!");
+        }, 700);
+      }, 900);
+    }
+
+    // send order to WhatsApp (new tab), customer stays on site
+    function sendOrderToWhatsApp(location){
+      let message = `New order from PERIDOT KITCHEN website:%0A`;
+      let total = 0;
+      Object.entries(cart).forEach(([slug, it])=>{
+        const lineTotal = it.qty * it.price;
+        total += lineTotal;
+        message += `- ${it.name} x${it.qty} — ₦${lineTotal.toLocaleString()}%0A`;
+      });
+      message += `%0ATotal: ₦${total.toLocaleString()}%0A`;
+      message += `Delivery Location: ${location}`;
+
+      // open WhatsApp in new tab - owner receives the order
+      const url = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(decodeURIComponent(message))}`;
+      // open in new tab so user remains on your site
+      window.open(url, '_blank');
+
+      // optional: clear cart after sending (comment/uncomment as desired)
+      // clearCart();
+      updateCartPill();
+    }
+
+    // allow clicking the small avatar to toggle chat window
+    periToggle.addEventListener('click', () => {
+      if(periWindow.style.display === 'flex'){
+        periWindow.style.display = 'none';
+        periWindow.setAttribute('aria-hidden','true');
+      } else {
+        periWindow.style.display = 'flex';
+        periWindow.setAttribute('aria-hidden','false');
+      }
+    });
+
+    // Safety: close peri window if clicked outside (optional)
+    document.addEventListener('click', (e) => {
+      const win = periWindow;
+      const toggle = periToggle;
+      if(!win.contains(e.target) && !toggle.contains(e.target) && win.style.display === 'flex'){
+        // keep it open; optional: close if you prefer
+        // win.style.display = 'none';
+      }
+    });
+
+    // optional: function to clear cart
+    function clearCart(){
+      for(const slug of Object.keys(cart)) delete cart[slug];
+      document.querySelectorAll('[id^="qty-"]').forEach(span => span.textContent = '0');
+      updateCartPill();
+    }
+
+    // initialize
+    (function init(){
+      updateCartPill();
+    })();
+
+  </script>
+</body>
+</html>

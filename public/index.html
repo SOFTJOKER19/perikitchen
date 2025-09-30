@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Peridot's Kitchen </title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Poppins',sans-serif;background:#fff;color:#333;overflow-x:hidden}
+
+  /* NAVBAR */
+  .navbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 5%;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    z-index: 1000;
+    backdrop-filter: blur(6px);
+  }
+
+  .navbar .logo {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #ff6347;
+  }
+
+  /* Desktop Nav */
+  .navbar nav ul {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+  }
+
+  .navbar nav ul li a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+
+  .navbar nav ul li a:hover {
+    color: #ff6347;
+  }
+
+  .order-btn {
+    background: #ff6347;
+    color: #fff !important;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .order-btn:hover {
+    background: #ff3c1f;
+  }
+
+  /* Hamburger */
+  .hamburger {
+    width: 25px;
+    height: 20px;
+    position: relative;
+    display: none;
+    cursor: pointer;
+    z-index: 1100;
+  }
+  .hamburger span {
+    position: absolute;
+    height: 3px;
+    width: 100%;
+    background: #fff;
+    left: 0;
+    transition: 0.3s ease;
+    border-radius: 2px;
+  }
+  .hamburger span:nth-child(1){ top:0; }
+  .hamburger span:nth-child(2){ top:8px; }
+  .hamburger span:nth-child(3){ top:16px; }
+
+  /* Turn into X */
+  .hamburger.active span:nth-child(1){
+    transform: rotate(45deg);
+    top: 8px;
+  }
+  .hamburger.active span:nth-child(2){
+    opacity: 0;
+  }
+  .hamburger.active span:nth-child(3){
+    transform: rotate(-45deg);
+    top: 8px;
+  }
+
+  /* Mobile Nav */
+  @media (max-width: 768px) {
+    .hamburger { display: block; }
+    
+    .navbar nav ul {
+      position: fixed;
+      top: 0; right: -100%;
+      height: 100%;
+      width: 250px;
+      background: rgba(0,0,0,0.95);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 25px;
+      transition: right 0.3s ease-in-out;
+    }
+
+    .navbar nav ul.active {
+      right: 0;
+    }
+  }
+
+  /* HERO */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:30px 5%;
+    color:#fff;
+    overflow:hidden;
+    flex-wrap:wrap;
+  }
+
+  /* layered background slides (crossfade) */
+  .hero-bg{position:absolute;inset:0;z-index:-2;pointer-events:none}
+  .hero-bg .bg{
+    position:absolute;
+    inset:0;
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    opacity:0;
+    animation:fade 20s linear infinite;
+    will-change:opacity;
+
+    filter: sepia(35%) hue-rotate(15deg) saturate(120%) contrast(105%) brightness(95%);
+    transform: scale(1.05);
+  }
+  .hero-bg .bg1{ background-image: url("combination.jpeg"); animation-delay: 0s; }
+  .hero-bg .bg2{ background-image: url("combination2.jpeg"); animation-delay: 5s; }
+  .hero-bg .bg3{ background-image: url("stick meat.jpeg"); animation-delay: 10s; }
+  .hero-bg .bg4{ background-image: url("WhatsApp Image 2025-09-26 at 4.47.38 AM (1).jpeg"); animation-delay: 15s; }
+
+  /* overlay for readability */
+  .hero::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.4));
+    z-index:-1;
+    pointer-events:none;
+  }
+
+  /* keyframes: each slide is visible ~5s */
+  @keyframes fade{
+    0%   { opacity: 0; }
+    5%   { opacity: 1; }
+    25%  { opacity: 1; }
+    30%  { opacity: 0; }
+    100% { opacity: 0; }
+  }
+
+  /* HERO content */
+  .hero-content{flex:1;max-width:48%;margin-top:80px}
+  .hero h1{font-size:3rem;font-weight:800;margin-bottom:8px;text-align:left}
+  .hero p{font-size:1.1rem;margin-bottom:18px;color:rgba(255,255,255,0.95)}
+  .cta-btn{
+    background:#ff6347;color:#fff;padding:12px 22px;border-radius:28px;border:none;
+    cursor:pointer;font-weight:600;font-size:1rem;box-shadow:0 6px 18px rgba(0,0,0,0.12);
+    transition: all .25s ease;
+  }
+  .cta-btn:hover{background:#ff3c1f;transform:translateY(-2px)}
+  .cta-btn:active{transform:translateY(1px)}
+
+  /* Circular carousel */
+  .circle-carousel{
+    position:relative;
+    width:350px;height:350px;border-radius:50%;
+    margin-top:100px;animation:spin 20s linear infinite;transform-style:preserve-3d;
+    flex-shrink:0;
+  }
+  .circle-carousel img{
+    position:absolute;width:120px;height:120px;object-fit:cover;border-radius:50%;
+    border:3px solid rgba(255,255,255,0.9);
+    box-shadow:0 4px 14px rgba(0,0,0,0.25);
+  }
+  .circle-carousel img:nth-child(1){top:0;left:50%;transform:translateX(-50%)}
+  .circle-carousel img:nth-child(2){top:50%;right:0;transform:translateY(-50%)}
+  .circle-carousel img:nth-child(3){bottom:0;left:50%;transform:translateX(-50%)}
+  .circle-carousel img:nth-child(4){top:50%;left:0;transform:translateY(-50%)}
+
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+  .hero h1, .hero p { text-shadow: 0 2px 10px rgba(0,0,0,0.35); }
+
+  /* Responsive hero */
+  @media (max-width:992px){
+    .hero{justify-content:center;text-align:center;padding:28px 6%}
+    .hero-content{max-width:100%}
+    .hero h1{font-size:2.4rem}
+    .circle-carousel{width:280px;height:280px;margin-top:18px}
+    .circle-carousel img{width:100px;height:100px}
+  }
+  @media (max-width:600px){
+    .hero{padding:22px 5%}
+    .hero h1{font-size:1.9rem}
+    .circle-carousel{width:200px;height:200px;margin-top:18px}
+    .circle-carousel img{width:80px;height:80px}
+  }
+
+  /* Food cards slider */
+  .carousel{display:flex;gap:20px;padding:40px 20px;background:#f9f9f9;overflow:hidden}
+  .carousel-track{display:flex;animation:scroll 25s linear infinite;gap:20px}
+  @keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  .food-card{min-width:220px;background:#fff;border-radius:16px;box-shadow:0 10px 20px rgba(0,0,0,.08);overflow:hidden}
+  .food-card img{width:100%;height:160px;object-fit:cover}
+  .food-card h3{margin:12px;font-size:1.1rem;color:#333}
+  .food-card p{margin:0 12px 16px;color:#666;font-size:.95rem}
+</style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo">Peridot's Kitchen</div>
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <nav>
+      <ul id="nav-links">
+        <li><a href="#hero">Home</a></li>
+        <li><a href="menu/index.html">Menu</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="menu/index.html" target="_blank" class="order-btn">Order Now</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero" id="hero" aria-label="Peridot's Kitchen hero">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="bg bg1"></div>
+      <div class="bg bg2"></div>
+      <div class="bg bg3"></div>
+      <div class="bg bg4"></div>
+    </div>
+
+    <div class="hero-content">
+      <h1> Welcome to Peridot's Kitchen</h1>
+      <p>Delicious homemade meals, delivered with love </p>
+      <button class="cta-btn" onclick="orderNow()">View Menu</button>
+    </div>
+
+    <div class="circle-carousel" aria-hidden="true">
+      <img src="stick meat.jpeg" alt="Stick meat">
+      <img src="combination.jpeg" alt="Combo plate">
+      <img src="WhatsApp Image 2025-09-26 at 4.47.38 AM (1).jpeg" alt="Chicken">
+      <img src="combination2.jpeg" alt="Dessert">
+    </div>
+  </section>
+
+  <!-- MENU SLIDER -->
+  <section class="carousel" id="menu" aria-label="menu carousel">
+    <div class="carousel-track">
+      <div class="food-card">
+        <img src="perifooter8.jpg" alt="img">
+        
+      </div>
+      <div class="food-card">
+        <img src="perifooter7.jpg" alt="img">
+        
+      </div>
+      <div class="food-card">
+        <img src="perifooter6.jpg" alt="">
+      
+    
+      </div>
+      <div class="food-card">
+        <img src="perifooter4.jpg" alt="">
+       
+      </div>
+      <!-- duplicate for smooth loop -->
+      <div class="food-card">
+        <img src="perifooter3.jpg" alt="">
+     
+      </div>
+      <div class="food-card">
+        <img src="perifooter2.jpg" alt="">
+      
+      </div>
+    </div>
+  </section>
+
+  <footer style="text-align:center;padding:20px;background:#333;color:#fff">
+    © 2025 Peridot's Kitchen
+  </footer>
+
+<script>
+  function orderNow(){
+    window.open("menu/index.html.","_blank");
+  }
+
+  function toggleMenu(){
+    document.getElementById("nav-links").classList.toggle("active");
+    document.getElementById("hamburger").classList.toggle("active");
+  }
+</script>
+</body>
+</html>
