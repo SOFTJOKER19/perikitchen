@@ -1744,9 +1744,9 @@
         Object.entries(cart).forEach(([slug, it])=>{
           const lineTotal = it.qty * it.price;
           total += lineTotal;
-          summaryText += `• ${it.name} x${it.qty} — ₦${lineTotal.toLocaleString()}\n`;
+          summaryText += `• ${it.name} x${it.qty} — €${lineTotal.toLocaleString()}\n`;
         });
-        summaryText += `Total: ₦${total.toLocaleString()}`;
+        summaryText += `Total: €${total.toLocaleString()}`;
 
         // append as bot message (formatted)
         periAppendBot(summaryText);
@@ -1794,9 +1794,9 @@
       Object.entries(cart).forEach(([slug, it])=>{
         const lineTotal = it.qty * it.price;
         total += lineTotal;
-        message += `- ${it.name} x${it.qty} — ₦${lineTotal.toLocaleString()}%0A`;
+        message += `- ${it.name} x${it.qty} — €${lineTotal.toLocaleString()}%0A`;
       });
-      message += `%0ATotal: ₦${total.toLocaleString()}%0A`;
+      message += `%0ATotal: €${total.toLocaleString()}%0A`;
       message += `Delivery Location: ${location}`;
 
       // open WhatsApp in new tab - owner receives the order
